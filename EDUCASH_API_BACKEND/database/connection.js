@@ -1,25 +1,30 @@
-import sql from 'mssql'
+    const sql = require('mssql');
+    require('dotenv').config();
 
-const dbSettings = { 
-    user: "sa",
-    password:"UTH2017",
-    server: "DESKTOP-6H94ODJ",
-    database:"EDUCASHDB",
-    options: {
-        encrypt: true,
-        trustServerCertificate: true,
-        port: 1433,
-    }
-}
+    const config = {
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        server: process.env.DB_SERVER,
+        database: process.env.DB_DATABASE,
+        options: {
+            encrypt: true, 
+            trustServerCertificate: true  
+        }
+    };
 
-export const getConnection = async () => {
-    try {
-        const pool = await sql.connect(dbSettings)
-        console.log("Conexión a la base de datos establecida correctamente");
-        return pool;
-        
-    } catch (error) {
-        console.error(error); 
-        throw error;       
+    async function connectDB() {
+        try {
+            await sql.connect(config);
+            console.log('Conexión a SQL Server establecida correctamente.');
+            return sql;
+        } catch (err) {
+            console.error('Error al conectar a SQL Server:', err);
+            process.exit(1);
+        }
     }
-}
+
+    module.exports = {
+        sql,
+        connectDB
+    };
+    
