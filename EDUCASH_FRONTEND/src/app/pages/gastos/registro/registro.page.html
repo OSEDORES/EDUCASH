@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/gastos/listado"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Nuevo Gasto</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="formGasto" (ngSubmit)="guardarGasto()">
+    <!-- Monto -->
+    <ion-item>
+      <ion-label position="floating">Monto (*)</ion-label>
+      <ion-input type="number" formControlName="monto" required></ion-input>
+    </ion-item>
+
+    <!-- Categoría -->
+    <ion-item>
+      <ion-label position="floating">Categoría (*)</ion-label>
+      <ion-select formControlName="categoria" interface="popover">
+        <ion-select-option *ngFor="let cat of categorias" [value]="cat.nom_categoria">
+          {{ cat.nom_categoria }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <!-- Fecha -->
+    <ion-item>
+      <ion-label position="floating">Fecha (*)</ion-label>
+      <ion-datetime 
+        formControlName="fecha" 
+        displayFormat="DD/MM/YYYY"
+        [value]="fechaActual">
+      </ion-datetime>
+    </ion-item>
+
+    <!-- Notas -->
+    <ion-item>
+      <ion-label position="floating">Descripción (opcional)</ion-label>
+      <ion-textarea formControlName="descripcion" rows="2"></ion-textarea>
+    </ion-item>
+
+    <!-- Botón de guardar -->
+    <ion-button 
+      type="submit" 
+      expand="block" 
+      color="danger" 
+      [disabled]="!formGasto.valid"
+      class="ion-margin">
+      <ion-icon name="save" slot="start"></ion-icon>
+      Guardar Gasto
+    </ion-button>
+  </form>
+</ion-content>

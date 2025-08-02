@@ -1,0 +1,33 @@
+<ion-app>
+  <ion-menu side="start" menuId="main" contentId="main-content" type="overlay">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <div class="logo-container ion-text-center ion-padding">
+          <img src="assets/img/EDUCASH_LOGO.png" alt="EDUCA$H Logo" class="menu-logo">
+          <div class="quick-summary" *ngIf="isAuthenticated">
+          </div>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content>
+      <ion-list lines="none">
+        <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
+          <ion-item [routerLink]="p.url" routerDirection="root" detail="false" class="menu-item">
+            <ion-icon slot="start" [name]="p.icon" color="medium"></ion-icon>
+            <ion-label>{{ p.title }}</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <div class="menu-divider"></div>
+
+        <ion-item button (click)="logout()" class="logout-item">
+          <ion-icon slot="start" name="log-out" color="danger"></ion-icon>
+          <ion-label>Cerrar sesión</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+</ion-app>

@@ -1,0 +1,154 @@
+/* presupuestos.page.scss - Versión mejorada */
+
+/* Estilo para la toolbar */
+ion-toolbar {
+  --background: var(--ion-color-primary);
+  --color: white;
+  
+  ion-title {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  
+  ion-button {
+    --color: white;
+  }
+}
+
+/* Contenido principal */
+ion-content {
+  --background: #f8f9fa;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+}
+
+/* Lista de presupuestos mejorada */
+ion-list {
+  background: transparent;
+  
+  ion-item {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --inner-padding-end: 8px;
+    --min-height: 100px;
+    --background: white;
+    --border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--ion-color-primary);
+    
+    &:active {
+      transform: scale(0.98);
+    }
+    
+    ion-label {
+      h2 {
+        font-weight: 700;
+        color: var(--ion-color-dark);
+        margin-bottom: 6px;
+        font-size: 1.1rem;
+      }
+      
+      p {
+        color: var(--ion-color-medium);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        
+        &:last-of-type {
+          font-weight: 600;
+          color: var(--ion-color-dark);
+          margin-top: 8px;
+        }
+      }
+    }
+    
+    ion-progress-bar {
+      margin: 8px 0;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    ion-badge {
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 12px;
+    }
+    
+    &.excedido {
+      --background: rgba(var(--ion-color-danger-rgb), 0.05);
+      border-left-color: var(--ion-color-danger);
+      
+      ion-progress-bar {
+        &::part(progress) {
+          box-shadow: 0 0 8px rgba(var(--ion-color-danger-rgb), 0.3);
+        }
+      }
+      
+      ion-label p:last-of-type {
+        color: var(--ion-color-danger);
+      }
+    }
+    
+    ion-buttons {
+      margin-left: 8px;
+      
+      ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        --border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        
+        &:first-child {
+          --background: rgba(var(--ion-color-primary-rgb), 0.1);
+          --color: var(--ion-color-primary);
+        }
+        
+        &:last-child {
+          --background: rgba(var(--ion-color-danger-rgb), 0.1);
+        }
+      }
+    }
+  }
+}
+
+/* Efectos hover para desktop */
+@media (hover: hover) {
+  ion-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    
+    &.excedido {
+      --background: rgba(var(--ion-color-danger-rgb), 0.08);
+    }
+  }
+  
+  ion-button:hover {
+    transform: scale(1.1);
+  }
+}
+
+/* Mensaje para lista vacía */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  
+  ion-icon {
+    font-size: 64px;
+    color: var(--ion-color-medium);
+    opacity: 0.5;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    font-size: 1rem;
+    margin: 0;
+  }
+}

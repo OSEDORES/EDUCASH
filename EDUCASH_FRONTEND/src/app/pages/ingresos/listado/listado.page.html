@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mis Ingresos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="navigateToRegistro()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Filtros rápidos -->
+  <ion-segment [(ngModel)]="filtro" (ionChange)="filtrarIngresos()">
+    <ion-segment-button value="todos">
+      <ion-label>Todos</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="mes">
+      <ion-label>Este mes</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="categoria">
+      <ion-label>Por categoría</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Lista de ingresos mejorada -->
+  <ion-list>
+    <ion-item-sliding *ngFor="let ingreso of ingresosFiltrados">
+      <ion-item 
+        [style.--ion-color-base]="getColorCategoria(ingreso.categoria)"
+        [class.ingreso-recurrente]="esRecurrente(ingreso.categoria)">
+        
+        <ion-icon 
+          [name]="getIconoCategoria(ingreso.categoria)" 
+          slot="start">
+        </ion-icon>
+        
+        <ion-label>
+          <div class="categoria-chip">
+            <ion-icon [name]="getIconoCategoria(ingreso.categoria)"></ion-icon>
+            {{ ingreso.categoria }}
+          </div>
+          <p>{{ ingreso.fecha | date:'dd/MM/yyyy' }}</p>
+          <p *ngIf="ingreso.descripcion" class="descripcion">{{ ingreso.descripcion }}</p>
+        </ion-label>
+        
+        <ion-note slot="end">
+          <span>+ L. {{ ingreso.monto | number:'1.2-2' }}</span>
+          <ion-badge *ngIf="esRecurrente(ingreso.categoria)">Recurrente</ion-badge>
+        </ion-note>
+      </ion-item>
+      
+      <ion-item-options side="end">
+        <ion-item-option color="primary" (click)="editarIngreso(ingreso)">
+          <ion-icon name="pencil" slot="icon-only"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="eliminarIngreso(ingreso.id)">
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+
+  <!-- Mensaje si no hay ingresos -->
+  <div *ngIf="ingresosFiltrados.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="wallet-outline" size="large" color="medium"></ion-icon>
+    <p>No hay ingresos registrados</p>
+  </div>
+</ion-content>

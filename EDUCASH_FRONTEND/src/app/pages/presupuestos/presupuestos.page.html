@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mis Presupuestos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModalCrearPresupuesto()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let presupuesto of presupuestos" [class.excedido]="presupuesto.montoUsado > presupuesto.montoTotal">
+      <ion-label>
+        <h2>{{ presupuesto.nombre }}</h2>
+        <p>{{ presupuesto.categoria }} • {{ presupuesto.periodo }}</p>
+        <ion-progress-bar 
+          [value]="calcularProgreso(presupuesto.montoUsado, presupuesto.montoTotal) / 100"
+          [color]="presupuesto.montoUsado > presupuesto.montoTotal ? 'danger' : 'primary'">
+        </ion-progress-bar>
+        <p>{{ presupuesto.montoUsado | currency }} / {{ presupuesto.montoTotal | currency }}</p>
+      </ion-label>
+      <ion-badge slot="end" *ngIf="presupuesto.montoUsado > presupuesto.montoTotal" color="danger">
+        Excedido
+      </ion-badge>
+      <ion-buttons slot="end">
+        <ion-button (click)="abrirModalEditarPresupuesto(presupuesto)">
+          <ion-icon name="pencil-outline"></ion-icon>
+        </ion-button>
+        <ion-button (click)="eliminarPresupuesto(presupuesto.id)" color="danger">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+</ion-content>

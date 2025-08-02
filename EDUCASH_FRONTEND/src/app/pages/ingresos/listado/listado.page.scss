@@ -1,0 +1,78 @@
+
+:root {
+  --categoria-salario: #4CAF50;
+  --categoria-freelance: #2196F3;
+  --categoria-bonos: #FFC107;
+  --categoria-energia: #FF5722;
+}
+
+/* Modifica el estilo de los items para categorías */
+ion-item {
+  &[style*='--ion-color-base'] {
+    --background: rgba(var(--ion-color-base-rgb), 0.08);
+    --border-left: 4px solid var(--ion-color-base);
+    
+    ion-label h2 {
+      color: var(--ion-color-base) !important;
+    }
+    
+    ion-icon {
+      color: var(--ion-color-base) !important;
+    }
+  }
+
+  /* Estilo para ingresos recurrentes */
+  &.ingreso-recurrente {
+    --background: rgba(var(--ion-color-primary-rgb), 0.05);
+    ion-badge {
+      background: var(--ion-color-primary);
+      color: white;
+    }
+  }
+}
+
+/* Mejora el visual de las notas */
+ion-note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  
+  span {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  ion-badge {
+    margin-top: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+}
+
+/* Añade estas reglas al final */
+.categoria-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background: rgba(var(--ion-color-base-rgb), 0.1);
+  margin-right: 8px;
+  font-size: 0.8rem;
+  
+  ion-icon {
+    margin-right: 4px;
+    font-size: 1rem;
+  }
+}
+
+/* Efecto hover mejorado */
+@media (hover: hover) {
+  ion-item-sliding:hover ion-item {
+    transform: translateX(4px);
+    --background: #f9f9f9;
+  }
+}
+
+ion-title {
+  font-weight: bold !important;
+}

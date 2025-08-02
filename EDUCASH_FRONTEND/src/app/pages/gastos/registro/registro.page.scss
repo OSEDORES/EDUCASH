@@ -1,0 +1,108 @@
+ion-toolbar {
+    --background: var(--ion-color-primary);
+    --color: white;
+    
+    ion-title {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    ion-back-button {
+      --color: white;
+    }
+  }
+  
+  /* Contenedor del formulario */
+  form {
+    padding: 16px;
+  }
+  
+  /* Estilos para los items del formulario */
+  ion-item {
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    --background: #f8f9fa;
+    --highlight-color-focused: var(--ion-color-danger);
+    
+    ion-label[position="floating"] {
+      color: var(--ion-color-medium);
+      font-weight: 500;
+      transform-origin: left center;
+    }
+    
+    ion-input, ion-select, ion-datetime, ion-textarea {
+      --color: var(--ion-color-dark);
+      --placeholder-color: var(--ion-color-medium);
+      --placeholder-opacity: 0.8;
+      font-size: 1rem;
+    }
+    
+    &.item-has-focus {
+      --background: white;
+      box-shadow: 0 0 0 2px rgba(var(--ion-color-danger-rgb), 0.1);
+    }
+  }
+  
+  /* Estilo especial para el campo de monto */
+  ion-input[type="number"] {
+    input {
+      text-align: end;
+      font-weight: 600;
+    }
+  }
+  
+  /* Estilo para el select de categoría */
+  ion-select {
+    &::part(icon) {
+      color: var(--ion-color-danger);
+    }
+  }
+  
+  /* Estilo para el datetime */
+  ion-datetime {
+    &::part(text) {
+      color: var(--ion-color-dark);
+    }
+  }
+  
+  /* Botón de guardar mejorado */
+  ion-button[type="submit"] {
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(var(--ion-color-danger-rgb), 0.2);
+    --padding-top: 18px;
+    --padding-bottom: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-top: 24px;
+    transition: all 0.3s ease;
+    
+    &:active {
+      transform: scale(0.98);
+    }
+    
+    ion-icon {
+      font-size: 1.2rem;
+      margin-right: 8px;
+    }
+    
+    &:disabled {
+      --background: var(--ion-color-medium);
+      --box-shadow: none;
+      opacity: 0.7;
+    }
+  }
+  
+  /* Efectos hover para desktop */
+  @media (hover: hover) {
+    ion-item:hover {
+      --background: white;
+    }
+    
+    ion-button[type="submit"]:hover:not(:disabled) {
+      --box-shadow: 0 6px 16px rgba(var(--ion-color-danger-rgb), 0.3);
+      transform: translateY(-2px);
+    }
+  }

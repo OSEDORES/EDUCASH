@@ -1,0 +1,102 @@
+/* gastos.page.scss - Versión mejorada */
+
+/* Estilo para la toolbar */
+ion-toolbar {
+    --background: var(--ion-color-primary);
+    --color: white;
+    
+    ion-title {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    ion-button {
+      --color: white;
+    }
+  }
+  
+  /* Contenido principal */
+  ion-content {
+    --background: #f8f9fa;
+  }
+  
+  /* Lista de gastos mejorada */
+  ion-list {
+    background: transparent;
+    padding: 16px;
+    
+    ion-item {
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --min-height: 72px;
+      --background: white;
+      --border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease;
+      
+      &:active {
+        transform: scale(0.98);
+      }
+      
+      ion-label {
+        h2 {
+          font-weight: 600;
+          color: var(--ion-color-dark);
+          margin-bottom: 4px;
+          text-transform: capitalize;
+        }
+        
+        p {
+          color: var(--ion-color-medium);
+          font-size: 0.85rem;
+        }
+      }
+      
+      ion-note[color="danger"] {
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+    }
+  }
+  
+  /* Mensaje para lista vacía */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    text-align: center;
+    padding: 0 20px;
+    
+    ion-icon {
+      font-size: 64px;
+      color: var(--ion-color-medium);
+      opacity: 0.5;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: var(--ion-color-medium);
+      font-size: 1rem;
+      margin: 0;
+    }
+  }
+  
+  /* Efectos hover para desktop */
+  @media (hover: hover) {
+    ion-item:hover {
+      --background: #f9f9f9;
+    }
+  }
+
+  ion-item-sliding {
+    width: 100%;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--ion-color-light); /* Línea divisora */
+  }
+  
+  ion-item-option {
+    width: 70px; /* Ancho fijo para los botones */
+  }

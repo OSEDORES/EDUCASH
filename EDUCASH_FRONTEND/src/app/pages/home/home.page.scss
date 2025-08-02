@@ -1,0 +1,215 @@
+.home-content {
+  --background: #f5f7fa;
+}
+
+.header-title {
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.summary-card {
+  margin: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  .balance-amount {
+    font-size: 2rem;
+    color: var(--ion-color-primary);
+    margin-top: 8px;
+  }
+  
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 12px;
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(var(--ion-color-light-rgb), 0.7);
+      
+      ion-icon {
+        font-size: 1.8rem;
+        margin-right: 12px;
+      }
+      
+      h3 {
+        margin: 4px 0 0;
+        font-size: 1.2rem;
+      }
+      
+      p {
+        margin: 0;
+        color: var(--ion-color-medium);
+        font-size: 0.9rem;
+      }
+    }
+    
+    .income ion-icon {
+      color: var(--ion-color-success);
+    }
+    
+    .expense ion-icon {
+      color: var(--ion-color-danger);
+    }
+  }
+}
+
+.chart-card {
+  margin: 16px;
+  border-radius: 12px;
+  
+  .chart-container {
+    display: block;
+    width: 100%;
+    height: 250px;
+  }
+}
+
+.transactions-card {
+  margin: 16px;
+  border-radius: 12px;
+  
+  ion-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .transaction-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    margin-bottom: 8px;
+    
+    ion-icon {
+      font-size: 1.5rem;
+    }
+    
+    h3 {
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    
+    p {
+      color: var(--ion-color-medium);
+      font-size: 0.8rem;
+    }
+    
+    ion-note {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+  }
+}
+
+/* Efectos hover para interactividad */
+ion-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* Estilos para el gráfico mejorado */
+.chart-card {
+  ion-card-header {
+    padding-bottom: 0;
+    
+    ion-segment {
+      margin-top: 12px;
+      
+      ion-segment-button {
+        --color-checked: var(--ion-color-primary);
+        --indicator-color: var(--ion-color-primary);
+        min-height: 32px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  .chart-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+  
+  .chart-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
+    
+    .chart-container {
+      display: block;
+      width: 100%;
+      height: 250px;
+    }
+    
+    .chart-center-text {
+      position: absolute;
+      top: 41%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      
+      span {
+        font-size: 0.8rem;
+        color: var(--ion-color-medium);
+      }
+      
+      h3 {
+        font-size: 1.8rem;
+        margin: 4px 0;
+        color: var(--ion-color-primary);
+      }
+      
+      small {
+        font-size: 0.7rem;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+  
+  .comparison-table {
+    flex-grow: 1;
+    background: rgba(var(--ion-color-light-rgb), 0.5);
+    border-radius: 12px;
+    padding: 12px;
+    
+    .table-row {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--ion-color-light-shade);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      div {
+        flex: 1;
+        text-align: center;
+        
+        &:first-child {
+          text-align: start;
+          font-weight: 500;
+        }
+      }
+      
+      &.header {
+        font-weight: 600;
+        color: var(--ion-color-primary);
+        border-bottom: 2px solid var(--ion-color-primary);
+      }
+    }
+  }
+}
