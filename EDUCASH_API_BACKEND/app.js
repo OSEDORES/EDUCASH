@@ -1,9 +1,12 @@
- const express = require('express');
- const { connectDB } = require('./database/connection');
- require('dotenv').config();
+import express from 'express'
+/*import authRoutes from './routes/auth.routes.js'*/
+/*import presupuestosRoutes from './routes/presupuestos.routes.js'*/
+/*import tipsRoutes from './routes/tips.routes.js'*/
+import transaccionesRoutes from './routes/transacciones.routes.js';
+/*import usuariosRoutes from './routes/usuarios.routes.js'*/
 
 const app = express()
-const PORT = process.env.PORT || 3000;
+
 
 app.use(express.json());
 
@@ -21,20 +24,11 @@ app.use(express.json());
         next();
     });
 
-    connectDB().then(() => {
-        console.log("Conexión a la base de datos establecida");
-        app.get('/', (req, res) => {
-            res.send('Backend de Educash funcionando!');
-        });
+    /*app.use('/api/auth', authRoutes);*/
+    /*app.use('/api/presupuestos', presupuestosRoutes);*/
+    /*app.use('/api/tips', tipsRoutes);*/
+    app.use('/api', transaccionesRoutes);
+    /*app.use('/api/usuarios', usuariosRoutes);*/
 
-        app.listen(PORT, () => {
-            console.log(`Servidor Educash escuchando en el puerto ${PORT}`);
-        });
-    });
-
-    app.use((err, req, res, next) => {
-        console.error(err.stack);
-        res.status(500).send('Algo salió mal en el servidor!');
-    });
 
 export default app;
