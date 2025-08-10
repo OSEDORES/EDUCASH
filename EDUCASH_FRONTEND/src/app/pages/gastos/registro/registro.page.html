@@ -1,55 +1,108 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar [color]="getCategoriaSeleccionada()?.color || 'danger'">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/gastos/listado"></ion-back-button>
     </ion-buttons>
-    <ion-title>Nuevo Gasto</ion-title>
+    <ion-title>{{ isEditMode ? 'Editar Gasto' : 'Nuevo Gasto' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="guardarGasto()" [strong]="true" [disabled]="formGasto.invalid || cargando">
+        <ion-icon name="checkmark" slot="start"></ion-icon>
+        Guardar
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <form [formGroup]="formGasto" (ngSubmit)="guardarGasto()">
-    <!-- Monto -->
+  <form [formGroup]="formGasto">
+    <!-- Monto con validación mejorada -->
     <ion-item>
-      <ion-label position="floating">Monto (*)</ion-label>
-      <ion-input type="number" formControlName="monto" required></ion-input>
+      <ion-label position="floating">Monto (L.) *</ion-label>
+      <ion-input 
+        type="number" 
+        formControlName="monto" 
+        inputmode="decimal"
+        placeholder="0.00"
+        [clearInput]="true">
+      </ion-input>
+      <ion-note slot="error" *ngIf="formGasto.get('monto')?.errors?.['required']">
+        Campo requerido
+      </ion-note>
+      <ion-note slot="error" *ngIf="formGasto.get('monto')?.errors?.['min']">
+        Mínimo L. 0.01
+      </ion-note>
     </ion-item>
 
-    <!-- Categoría -->
+    <!-- Selector de categoría con iconos -->
     <ion-item>
-      <ion-label position="floating">Categoría (*)</ion-label>
-      <ion-select formControlName="categoria" interface="popover">
-        <ion-select-option *ngFor="let cat of categorias" [value]="cat.nom_categoria">
+      <ion-label position="floating">Categoría *</ion-label>
+      <ion-select 
+        formControlName="id_categoria" 
+        interface="action-sheet"
+        [okText]="'Seleccionar'" 
+        [cancelText]="'Cancelar'">
+        <ion-select-option 
+          *ngFor="let cat of categorias" 
+          [value]="cat.id"
+          [style.color]="cat.color">
+          <ion-icon [name]="cat.icono" [style.color]="cat.color"></ion-icon>
           {{ cat.nom_categoria }}
+          <ion-badge *ngIf="cat.es_recurrente" color="medium" slot="end">
+            Recurrente
+          </ion-badge>
         </ion-select-option>
       </ion-select>
     </ion-item>
 
-    <!-- Fecha -->
+    <!-- Fecha con límite máximo -->
     <ion-item>
-      <ion-label position="floating">Fecha (*)</ion-label>
-      <ion-datetime 
-        formControlName="fecha" 
-        displayFormat="DD/MM/YYYY"
-        [value]="fechaActual">
+      <ion-label position="floating">Fecha *</ion-label>
+      <ion-datetime
+        formControlName="fecha"
+        presentation="date"
+        display-format="DD/MM/YYYY"
+        [max]="maxDate">
       </ion-datetime>
     </ion-item>
 
-    <!-- Notas -->
+    <!-- Descripción con contador -->
     <ion-item>
       <ion-label position="floating">Descripción (opcional)</ion-label>
-      <ion-textarea formControlName="descripcion" rows="2"></ion-textarea>
+      <ion-textarea 
+        formControlName="descripcion" 
+        rows="3"
+        [counter]="true" 
+        maxlength="200"
+        placeholder="Ej: Cena en restaurante">
+      </ion-textarea>
+      <ion-note slot="helper">
+        {{ formGasto.get('descripcion')?.value?.length || 0 }}/200
+      </ion-note>
     </ion-item>
 
-    <!-- Botón de guardar -->
-    <ion-button 
-      type="submit" 
-      expand="block" 
-      color="danger" 
-      [disabled]="!formGasto.valid"
-      class="ion-margin">
-      <ion-icon name="save" slot="start"></ion-icon>
-      Guardar Gasto
-    </ion-button>
+    <!-- Recurrente (solo si la categoría lo permite) -->
+    <ion-item *ngIf="getCategoriaSeleccionada()?.es_recurrente">
+      <ion-label>Gasto recurrente</ion-label>
+      <ion-toggle 
+        formControlName="es_recurrente" 
+        slot="end"
+        [color]="getCategoriaSeleccionada()?.color || 'danger'">
+      </ion-toggle>
+    </ion-item>
+
+    <!-- Resumen visual -->
+    <ion-card *ngIf="formGasto.get('monto')?.value && formGasto.get('id_categoria')?.value">
+      <ion-card-header>
+        <ion-card-subtitle>Resumen del Gasto</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Monto:</strong> L. {{ formGasto.get('monto')?.value | number:'1.2-2' }}</p>
+        <p><strong>Categoría:</strong> {{ getNombreCategoria(formGasto.get('id_categoria')?.value) }}</p>
+        <p><strong>Fecha:</strong> {{ formGasto.get('fecha')?.value | date:'dd/MM/yyyy' }}</p>
+      </ion-card-content>
+    </ion-card>
   </form>
+
+  <!-- Estado de carga -->
+  <ion-progress-bar *ngIf="cargando" type="indeterminate"></ion-progress-bar>
 </ion-content>

@@ -1,62 +1,70 @@
 <ion-header>
-    <ion-toolbar>
-      <ion-title>Nuevo Presupuesto</ion-title>
-      <ion-buttons slot="end">
-        <ion-button (click)="cancelar()">Cancelar</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-  
-  <ion-content class="ion-padding">
-    <form [formGroup]="presupuestoForm" (ngSubmit)="guardar()">
-      <ion-item>
-        <ion-label position="floating">Nombre</ion-label>
-        <ion-input formControlName="nombre" type="text"></ion-input>
-      </ion-item>
-  
-      <ion-item>
-        <ion-label position="floating">Categoría</ion-label>
-        <ion-select formControlName="categoria">
-          <ion-select-option *ngFor="let categoria of categorias" [value]="categoria">
-            {{ categoria }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-  
-      <ion-item>
-        <ion-label position="floating">Tipo</ion-label>
-        <ion-select formControlName="tipo">
-          <ion-select-option *ngFor="let tipo of tipos" [value]="tipo">
-            {{ tipo }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-  
-      <ion-item>
-        <ion-label position="floating">Monto Total</ion-label>
-        <ion-input formControlName="montoTotal" type="number" min="0.01"></ion-input>
-      </ion-item>
-  
-      <ion-item>
-        <ion-label position="floating">Periodo</ion-label>
-        <ion-select formControlName="periodo">
-          <ion-select-option *ngFor="let periodo of periodos" [value]="periodo">
-            {{ periodo }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-  
-      <ion-item>
-        <ion-label position="floating">Objetivo (Opcional)</ion-label>
-        <ion-input formControlName="objetivo" type="text"></ion-input>
-      </ion-item>
-  
-      <ion-button 
-        type="submit" 
-        expand="block" 
-        [disabled]="presupuestoForm.invalid"
-        class="ion-margin-top">
-        Guardar
-      </ion-button>
-    </form>
-  </ion-content>
+  <ion-toolbar>
+    <ion-title>{{ esEdicion ? 'Editar' : 'Nuevo' }} Presupuesto</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancelar()">Cancelar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="presupuestoForm" (ngSubmit)="guardar()">
+    <!-- Campos principales -->
+    <ion-item>
+      <ion-label position="floating">Nombre</ion-label>
+      <ion-input formControlName="nombre" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Tipo</ion-label>
+      <ion-select formControlName="tipo">
+        <ion-select-option *ngFor="let tipo of tipos" [value]="tipo">{{ tipo }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Periodo</ion-label>
+      <ion-select formControlName="periodo">
+        <ion-select-option *ngFor="let periodo of periodos" [value]="periodo">{{ periodo }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Objetivo (Opcional)</ion-label>
+      <ion-input formControlName="objetivo" type="text"></ion-input>
+    </ion-item>
+
+    <!-- Sección dinámica de categorías -->
+    <div formArrayName="detalles" *ngFor="let detalle of detalles.controls; let i = index">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Categoría {{ i + 1 }}</ion-card-title>
+          <ion-button *ngIf="detalles.length > 1" fill="clear" color="danger" (click)="eliminarDetalle(i)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-card-header>
+        <ion-card-content [formGroupName]="i">
+          <ion-item>
+            <ion-label>Categoría</ion-label>
+            <ion-select formControlName="categoria">
+              <ion-select-option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Monto</ion-label>
+            <ion-input formControlName="monto" type="number" min="0.01"></ion-input>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <ion-button type="button" fill="clear" (click)="agregarDetalle()">
+      <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+      Agregar Categoría
+    </ion-button>
+
+    <ion-button type="submit" expand="block" [disabled]="presupuestoForm.invalid">
+      Guardar
+    </ion-button>
+  </form>
+</ion-content>

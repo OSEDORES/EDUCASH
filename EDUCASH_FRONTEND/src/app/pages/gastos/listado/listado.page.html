@@ -1,11 +1,11 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar [color]="categoriaFiltro !== 'todas' ? getColorCategoria(categoriaFiltro) : 'primary'">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Mis Gastos</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="navegarARegistro()">
+      <ion-button (click)="navigateToRegistro()">
         <ion-icon name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -13,30 +13,54 @@
 </ion-header>
 
 <ion-content>
-  <!-- Filtros -->
+  <!-- Filtros mejorados -->
   <ion-segment [(ngModel)]="filtro" (ionChange)="filtrarGastos()">
-    <ion-segment-button value="todos">Todos</ion-segment-button>
-    <ion-segment-button value="mes">Este mes</ion-segment-button>
+    <ion-segment-button value="todos">
+      <ion-label>Todos</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="mes">
+      <ion-label>Este mes</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="categoria" *ngIf="categorias.length > 0">
+      <ion-label>Por categoría</ion-label>
+    </ion-segment-button>
   </ion-segment>
 
-  <!-- Lista con opciones de deslizar -->
+  <!-- Selector de categoría para filtro -->
+  <ion-item *ngIf="filtro === 'categoria'">
+    <ion-label>Categoría:</ion-label>
+    <ion-select [(ngModel)]="categoriaFiltro" (ionChange)="filtrarGastos()">
+      <ion-select-option value="todas">Todas las categorías</ion-select-option>
+      <ion-select-option *ngFor="let cat of categorias" [value]="cat.id">
+        {{ cat.nom_categoria }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <!-- Lista optimizada -->
   <ion-list>
     <ion-item-sliding *ngFor="let gasto of gastosFiltrados">
-      <ion-item>
+      <ion-item [style.--ion-color-base]="getColorCategoria(gasto.id_categoria)">
+        <ion-icon 
+          slot="start" 
+          [name]="getIconoCategoria(gasto.id_categoria)" 
+          [color]="getColorCategoria(gasto.id_categoria)">
+        </ion-icon>
         <ion-label>
-          <h2>{{ gasto.categoria }}</h2>
+          <h2>{{ getNombreCategoria(gasto.id_categoria) }}</h2>
           <p>{{ gasto.fecha | date:'dd/MM/yyyy' }}</p>
+          <p *ngIf="gasto.descripcion" class="descripcion">{{ gasto.descripcion }}</p>
         </ion-label>
         <ion-note slot="end" color="danger">
-          - L.{{ gasto.monto | number:'1.2-2' }}
+          - L. {{ gasto.monto | number:'1.2-2' }}
+          <ion-badge *ngIf="gasto.es_recurrente" color="warning">Recurrente</ion-badge>
         </ion-note>
       </ion-item>
+      
       <ion-item-options side="end">
-        <!-- Botón de editar -->
         <ion-item-option color="primary" (click)="editarGasto(gasto)">
           <ion-icon name="pencil" slot="icon-only"></ion-icon>
         </ion-item-option>
-        <!-- Botón de eliminar -->
         <ion-item-option color="danger" (click)="eliminarGasto(gasto.id)">
           <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-item-option>
@@ -44,9 +68,27 @@
     </ion-item-sliding>
   </ion-list>
 
-  <!-- Mensaje si no hay gastos -->
-  <div *ngIf="gastosFiltrados.length === 0" class="ion-text-center ion-padding">
-    <ion-icon name="receipt-outline" size="large"></ion-icon>
+  <!-- Estados de la vista -->
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando gastos...</p>
+  </div>
+
+  <div *ngIf="!cargando && errorCarga" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>Error al cargar los gastos</p>
+    <ion-button fill="clear" (click)="cargarDatosIniciales()">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Reintentar
+    </ion-button>
+  </div>
+
+  <div *ngIf="!cargando && !errorCarga && gastosFiltrados.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="receipt-outline" size="large" color="medium"></ion-icon>
     <p>No hay gastos registrados</p>
+    <ion-button (click)="navigateToRegistro()" color="danger">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Agregar Gasto
+    </ion-button>
   </div>
 </ion-content>

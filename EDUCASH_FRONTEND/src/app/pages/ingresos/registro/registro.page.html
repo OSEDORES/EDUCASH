@@ -1,11 +1,11 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar [color]="getCategoriaSeleccionada()?.color || 'primary'">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/ingresos/listado"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ isEditMode ? 'Editar Ingreso' : 'Nuevo Ingreso' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="guardarIngreso()" [strong]="true" [disabled]="formIngreso.invalid">
+      <ion-button (click)="guardarIngreso()" [strong]="true" [disabled]="formIngreso.invalid || cargando">
         <ion-icon name="checkmark" slot="start"></ion-icon>
         Guardar
       </ion-button>
@@ -15,33 +15,37 @@
 
 <ion-content>
   <form [formGroup]="formIngreso">
-    <!-- Monto con estilo dinámico -->
-    <ion-item [color]="getColorCategoria(formIngreso.get('categoria')?.value)">
+    <!-- Monto -->
+    <ion-item>
       <ion-label position="floating">Monto (L.) *</ion-label>
       <ion-input 
         type="number" 
         formControlName="monto" 
         inputmode="decimal"
-        placeholder="0.00">
+        placeholder="0.00"
+        [clearInput]="true">
       </ion-input>
-      <ion-note slot="error" *ngIf="formIngreso.get('monto')?.touched && formIngreso.get('monto')?.invalid">
-        Monto mínimo: L. 0.01
-      </ion-note>      
+      <ion-note slot="error" *ngIf="formIngreso.get('monto')?.errors?.['required']">
+        Campo requerido
+      </ion-note>
+      <ion-note slot="error" *ngIf="formIngreso.get('monto')?.errors?.['min']">
+        Mínimo L. 0.01
+      </ion-note>
     </ion-item>
 
-    <!-- Selector de categoría mejorado -->
+    <!-- Categoría -->
     <ion-item>
       <ion-label position="floating">Categoría *</ion-label>
       <ion-select 
-        formControlName="categoria" 
+        formControlName="id_categoria" 
         interface="action-sheet"
         [okText]="'Seleccionar'" 
         [cancelText]="'Cancelar'">
         <ion-select-option 
           *ngFor="let cat of categorias" 
-          [value]="cat.nom_categoria"
+          [value]="cat.id ? cat.id.toString() : ''"
           [style.color]="cat.color">
-          <ion-icon [name]="cat.icono"></ion-icon>
+          <ion-icon [name]="cat.icono" [style.color]="cat.color"></ion-icon>
           {{ cat.nom_categoria }}
           <ion-badge *ngIf="cat.es_recurrente" color="medium" slot="end">
             Recurrente
@@ -50,39 +54,43 @@
       </ion-select>
     </ion-item>
 
-    <!-- Fecha con estilo contextual -->
+    <!-- Fecha -->
     <ion-item>
       <ion-label position="floating">Fecha *</ion-label>
       <ion-datetime
         formControlName="fecha"
         presentation="date"
         display-format="DD/MM/YYYY"
-        [value]="formIngreso.get('fecha')?.value">
+        [max]="maxDate">
       </ion-datetime>
     </ion-item>
 
-    <!-- Descripción con contador -->
+    <!-- Descripción -->
     <ion-item>
-      <ion-label position="floating">Descripción</ion-label>
+      <ion-label position="floating">Descripción (opcional)</ion-label>
       <ion-textarea 
         formControlName="descripcion" 
         rows="2"
         [counter]="true" 
-        maxlength="200">
+        maxlength="200"
+        placeholder="Ej: Pago por proyecto X">
       </ion-textarea>
       <ion-note slot="helper">
         {{ formIngreso.get('descripcion')?.value?.length || 0 }}/200
       </ion-note>
     </ion-item>
 
-    <!-- Recurrente (se auto-activa según categoría) -->
-    <ion-item *ngIf="formIngreso.get('es_recurrente')?.value">
+    <!-- Recurrente -->
+    <ion-item *ngIf="getCategoriaSeleccionada()?.es_recurrente">
       <ion-label>Ingreso recurrente</ion-label>
       <ion-toggle 
         formControlName="es_recurrente" 
         slot="end"
-        color="success">
+        [color]="getCategoriaSeleccionada()?.color || 'primary'">
       </ion-toggle>
     </ion-item>
   </form>
+
+  <!-- Estado de carga -->
+  <ion-progress-bar *ngIf="cargando" type="indeterminate"></ion-progress-bar>
 </ion-content>

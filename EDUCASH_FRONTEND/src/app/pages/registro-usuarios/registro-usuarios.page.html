@@ -1,0 +1,83 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Registro de Usuario</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="auth-container">
+    <!-- Logo -->
+    <div class="logo-container ion-text-center ion-margin-bottom">
+      <ion-img src="assets/img/EDUCASH_LOGO.png" class="logo" alt="EDUCA$H Logo"></ion-img>
+      <h2>Crear Nueva Cuenta</h2>
+    </div>
+
+    <!-- Formulario de Registro -->
+    <ion-card>
+      <ion-card-content>
+        <form [formGroup]="registroForm" (ngSubmit)="registrar()">
+          <!-- Campo Nombre -->
+          <ion-item>
+            <ion-label position="floating">Nombre Completo</ion-label>
+            <ion-input type="text" formControlName="nombre" required></ion-input>
+          </ion-item>
+          <ion-note *ngIf="registroForm.get('nombre')?.errors?.['required'] && registroForm.get('nombre')?.touched" color="danger">
+            El nombre es requerido
+          </ion-note>
+
+          <!-- Campo Email -->
+          <ion-item>
+            <ion-label position="floating">Correo Electrónico</ion-label>
+            <ion-input type="email" formControlName="email" required></ion-input>
+          </ion-item>
+          <ion-note *ngIf="registroForm.get('email')?.errors?.['required'] && registroForm.get('email')?.touched" color="danger">
+            El correo es requerido
+          </ion-note>
+          <ion-note *ngIf="registroForm.get('email')?.errors?.['email'] && registroForm.get('email')?.touched" color="danger">
+            Ingresa un correo válido
+          </ion-note>
+
+          <!-- Campo Contraseña -->
+          <ion-item>
+            <ion-label position="floating">Contraseña</ion-label>
+            <ion-input type="password" formControlName="password" required></ion-input>
+          </ion-item>
+          <ion-note *ngIf="registroForm.get('password')?.errors?.['required'] && registroForm.get('password')?.touched" color="danger">
+            La contraseña es requerida
+          </ion-note>
+          <ion-note *ngIf="registroForm.get('password')?.errors?.['minlength'] && registroForm.get('password')?.touched" color="danger">
+            Mínimo 6 caracteres
+          </ion-note>
+
+          <!-- Campo Confirmar Contraseña -->
+          <ion-item>
+            <ion-label position="floating">Confirmar Contraseña</ion-label>
+            <ion-input type="password" formControlName="confirmPassword" required></ion-input>
+          </ion-item>
+          <ion-note *ngIf="registroForm.get('confirmPassword')?.errors?.['required'] && registroForm.get('confirmPassword')?.touched" color="danger">
+            Confirma tu contraseña
+          </ion-note>
+          <ion-note *ngIf="registroForm.get('confirmPassword')?.errors?.['mismatch'] && registroForm.get('confirmPassword')?.touched" color="danger">
+            Las contraseñas no coinciden
+          </ion-note>
+
+          <!-- Botón de Registro -->
+          <ion-button 
+            expand="block" 
+            class="ion-margin-top" 
+            type="submit"
+            [disabled]="registroForm.invalid || isLoading"
+          >
+            <ion-spinner *ngIf="isLoading"></ion-spinner>
+            <span *ngIf="!isLoading">Registrarse</span>
+          </ion-button>
+        </form>
+
+        <!-- Enlace para Login -->
+        <div class="ion-text-center ion-margin-top">
+          <p>¿Ya tienes una cuenta? <a routerLink="/login">Inicia sesión</a></p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

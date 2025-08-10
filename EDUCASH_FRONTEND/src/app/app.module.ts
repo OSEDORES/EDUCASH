@@ -6,13 +6,17 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
+import { IonicStorageModule } from '@ionic/storage-angular';
 
 
-@NgModule({
+@NgModule({ 
   declarations: [AppComponent],
-  imports: [BrowserModule, IonicModule.forRoot({
-    menuType: 'overlay'
-  }), AppRoutingModule, HttpClientModule, ReactiveFormsModule],
+  imports: [BrowserModule,
+    IonicModule.forRoot({menuType: 'overlay'}), 
+    AppRoutingModule, 
+    HttpClientModule, 
+    ReactiveFormsModule, 
+    IonicStorageModule.forRoot()],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
 })

@@ -21,27 +21,39 @@
     <ion-segment-button value="mes">
       <ion-label>Este mes</ion-label>
     </ion-segment-button>
-    <ion-segment-button value="categoria">
+    <ion-segment-button value="categoria" *ngIf="categorias.length > 0">
       <ion-label>Por categoría</ion-label>
     </ion-segment-button>
   </ion-segment>
+
+  <!-- Selector de categoría (solo visible cuando el filtro es por categoría) -->
+  <ion-item *ngIf="filtro === 'categoria' && categorias.length > 0">
+    <ion-label>Categoría:</ion-label>
+    <ion-select [(ngModel)]="categoriaFiltro" (ionChange)="filtrarIngresos()">
+      <ion-select-option value="todas">Todas las categorías</ion-select-option>
+      <ion-select-option *ngFor="let cat of categorias" [value]="cat.id">
+        {{ cat.nom_categoria }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
 
   <!-- Lista de ingresos mejorada -->
   <ion-list>
     <ion-item-sliding *ngFor="let ingreso of ingresosFiltrados">
       <ion-item 
-        [style.--ion-color-base]="getColorCategoria(ingreso.categoria)"
-        [class.ingreso-recurrente]="esRecurrente(ingreso.categoria)">
+        [style.--ion-color-base]="getColorCategoria(ingreso.id_categoria)"
+        [class.ingreso-recurrente]="ingreso.es_recurrente">
         
         <ion-icon 
-          [name]="getIconoCategoria(ingreso.categoria)" 
-          slot="start">
+          [name]="getIconoCategoria(ingreso.id_categoria)" 
+          slot="start"
+          [style.color]="getColorCategoria(ingreso.id_categoria)">
         </ion-icon>
         
         <ion-label>
-          <div class="categoria-chip">
-            <ion-icon [name]="getIconoCategoria(ingreso.categoria)"></ion-icon>
-            {{ ingreso.categoria }}
+          <div class="categoria-chip" [style.background]="getColorCategoria(ingreso.id_categoria) + '20'">
+            <ion-icon [name]="getIconoCategoria(ingreso.id_categoria)"></ion-icon>
+            {{ getNombreCategoria(ingreso.id_categoria) }}
           </div>
           <p>{{ ingreso.fecha | date:'dd/MM/yyyy' }}</p>
           <p *ngIf="ingreso.descripcion" class="descripcion">{{ ingreso.descripcion }}</p>
@@ -49,7 +61,7 @@
         
         <ion-note slot="end">
           <span>+ L. {{ ingreso.monto | number:'1.2-2' }}</span>
-          <ion-badge *ngIf="esRecurrente(ingreso.categoria)">Recurrente</ion-badge>
+          <ion-badge *ngIf="ingreso.es_recurrente" color="warning">Recurrente</ion-badge>
         </ion-note>
       </ion-item>
       
@@ -64,9 +76,27 @@
     </ion-item-sliding>
   </ion-list>
 
-  <!-- Mensaje si no hay ingresos -->
-  <div *ngIf="ingresosFiltrados.length === 0" class="ion-text-center ion-padding">
+  <!-- Mensajes de estado -->
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando ingresos...</p>
+  </div>
+
+  <div *ngIf="!cargando && errorCarga" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>Error al cargar los ingresos</p>
+    <ion-button fill="clear" (click)="cargarDatosIniciales()">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Reintentar
+    </ion-button>
+  </div>
+
+  <div *ngIf="!cargando && !errorCarga && ingresosFiltrados.length === 0" class="ion-text-center ion-padding">
     <ion-icon name="wallet-outline" size="large" color="medium"></ion-icon>
     <p>No hay ingresos registrados</p>
+    <ion-button (click)="navigateToRegistro()" color="primary">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Agregar Ingreso
+    </ion-button>
   </div>
 </ion-content>

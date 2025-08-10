@@ -1,124 +1,92 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Tips Financieros</ion-title>
+    <ion-title>EDUCA$H Tips</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <!-- Barra de búsqueda -->
+  <ion-searchbar 
+    [(ngModel)]="terminoBusqueda"
+    (ionChange)="buscarTips()"
+    placeholder="Buscar tips..."
+    animated
+    debounce="300">
+  </ion-searchbar>
+
+  <!-- Estados de carga -->
+  <div *ngIf="cargando && tips.length === 0" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando tips financieros...</p>
+  </div>
+
+  <div *ngIf="errorCarga" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle" size="large" color="danger"></ion-icon>
+    <p>Error al cargar los tips</p>
+    <ion-button fill="clear" (click)="cargarTips()">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Reintentar
+    </ion-button>
+  </div>
+
   <!-- Lista de tips -->
-  <ion-list>
+  <ion-list *ngIf="!cargando && tips.length > 0">
     <ion-item 
       *ngFor="let tip of tips" 
-      (click)="tipSeleccionado = tip" 
-      [detail]="false"
+      (click)="seleccionarTip(tip)"
+      [class.selected]="tipSeleccionado?.id === tip.id"
       button>
-      <ion-icon [name]="tip.icono" slot="start" color="primary"></ion-icon>
-      <ion-label>{{ tip.titulo }}</ion-label>
-      <ion-badge slot="end" color="light">
-        {{ tip.datos_clave.porcentaje_ingresos }}%
+      <ion-icon [name]="tip.icono" slot="start" [color]="tipSeleccionado?.id === tip.id ? 'primary' : 'medium'"></ion-icon>
+      <ion-label class="ion-text-wrap">
+        <h3>{{ tip.titulo }}</h3>
+        <p>{{ tip.descripcion | slice:0:60 }}...</p>
+      </ion-label>
+      <ion-badge *ngIf="tip.porcentaje" slot="end" color="light">
+        {{ tip.porcentaje }}%
       </ion-badge>
     </ion-item>
   </ion-list>
 
+  <!-- Mensaje sin resultados -->
+  <div *ngIf="!cargando && tips.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="bulb-outline" size="large" color="medium"></ion-icon>
+    <p>No se encontraron tips financieros</p>
+  </div>
+
   <!-- Detalle del tip seleccionado -->
   <div *ngIf="tipSeleccionado" class="ion-padding">
-    <!-- Header con icono -->
-    <div class="ion-text-center ion-margin-bottom">
-      <ion-icon [name]="tipSeleccionado.icono" size="large" color="primary"></ion-icon>
-      <h2>{{ tipSeleccionado.titulo }}</h2>
-      <ion-chip color="primary" outline>
-        <ion-label>{{ tipSeleccionado.datos_clave.impacto }}</ion-label>
-      </ion-chip>
-    </div>
-
-    <!-- Definición -->
-    <ion-card class="ion-margin-vertical">
+    <ion-card>
       <ion-card-header>
-        <ion-card-title>Definición</ion-card-title>
+        <ion-card-title>
+          <ion-icon [name]="tipSeleccionado.icono" color="primary"></ion-icon>
+          {{ tipSeleccionado.titulo }}
+        </ion-card-title>
+        <ion-card-subtitle *ngIf="tipSeleccionado.categoria">
+          {{ tipSeleccionado.categoria }}
+        </ion-card-subtitle>
       </ion-card-header>
+      
       <ion-card-content>
-        <p>{{ tipSeleccionado.definicion }}</p>
-        <ion-grid class="ion-margin-top">
+        <p>{{ tipSeleccionado.descripcion }}</p>
+        
+        <ion-grid *ngIf="tipSeleccionado.porcentaje" class="ion-margin-top">
           <ion-row>
-            <ion-col size="6">
-              <ion-text color="primary">
-                <small>PORCENTAJE RECOMENDADO</small>
-              </ion-text>
-              <h1>{{ tipSeleccionado.datos_clave.porcentaje_ingresos }}%</h1>
-            </ion-col>
-            <ion-col size="6">
-              <ion-text color="primary">
-                <small>FLEXIBILIDAD</small>
-              </ion-text>
-              <h1>{{ tipSeleccionado.datos_clave.flexibilidad }}</h1>
+            <ion-col class="ion-text-center">
+              <ion-chip color="primary" outline>
+                <ion-label>Recomendación: {{ tipSeleccionado.porcentaje }}% de tus ingresos</ion-label>
+              </ion-chip>
             </ion-col>
           </ion-row>
         </ion-grid>
       </ion-card-content>
     </ion-card>
-
-    <!-- Ejemplos mejorados -->
-    <ion-card class="ion-margin-vertical">
-      <ion-card-header>
-        <ion-card-title>Ejemplos prácticos</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list lines="none">
-          <ion-item *ngFor="let ejemplo of tipSeleccionado.ejemplos">
-            <ion-label class="ion-text-wrap">
-              <h3>{{ ejemplo.nombre }}</h3>
-              <p>{{ ejemplo.descripcion }}</p>
-              <ion-note color="success">
-                <ion-icon name="bulb-outline" slot="start"></ion-icon>
-                {{ ejemplo.tip }}
-              </ion-note>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Contenido dinámico -->
-    <ion-card *ngFor="let seccion of tipSeleccionado.contenido" class="ion-margin-vertical">
-      <ion-card-header>
-        <ion-card-title>{{ seccion.titulo_seccion }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>{{ seccion.descripcion }}</p>
-        
-        <!-- Items de acción -->
-        <ion-list *ngIf="seccion.items" lines="none">
-          <ion-item *ngFor="let item of seccion.items">
-            <ion-icon name="checkmark-circle" slot="start" color="success"></ion-icon>
-            <ion-label>{{ item }}</ion-label>
-          </ion-item>
-        </ion-list>
-
-        <!-- Estadística -->
-        <div *ngIf="seccion.estadistica" class="ion-margin-top">
-          <ion-chip color="warning" outline>
-            <ion-icon name="analytics-outline" slot="start"></ion-icon>
-            <ion-label>{{ seccion.estadistica }}</ion-label>
-          </ion-chip>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Recursos -->
-    <ion-card *ngIf="tipSeleccionado.recursos?.length" class="ion-margin-vertical">
-      <ion-card-header>
-        <ion-card-title>Recursos adicionales</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list>
-          <ion-item *ngFor="let recurso of tipSeleccionado.recursos" [href]="recurso.url" detail>
-            <ion-label>{{ recurso.titulo }}</ion-label>
-          </ion-item>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
   </div>
+
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="refrescar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 </ion-content>

@@ -92,6 +92,14 @@
       ion-input {
         --color: #333333; /* Asegura color de texto oscuro */
         font-size: 1rem;
+        line-height: 1.5rem;
+        padding-top: 1.2rem; /* Added padding to avoid overlap */
+      }
+
+      ion-label {
+        font-size: 1rem;
+        line-height: 1.2rem;
+        padding-left: 2.5rem; /* To align with icon */
       }
 
       ion-icon {

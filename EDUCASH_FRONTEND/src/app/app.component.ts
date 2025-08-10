@@ -19,6 +19,8 @@ export class AppComponent implements OnInit {
     { title: 'Perfil', url: '/perfil', icon: 'person' }
   ];
 
+  public usuario: any;
+
   constructor(
     private menu: MenuController,
     public apiService: ApiService,
@@ -27,17 +29,24 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.menu.enable(true, 'main-content');
+    this.cargarUsuario();
   }
 
-  ionViewWillEnter() {
-    this.menu.enable(true, 'main-content');
+  async logout() {
+    await this.apiService.logout(); 
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 
-  logout() {
-    this.apiService.logout();
+  get isAuthenticated(): boolean {
+    return this.apiService.isAuthenticated; 
   }
 
-  public get isAuthenticated(): boolean {
-    return this.apiService.isAuthenticated;
+  async cargarUsuario() {
+    if (this.isAuthenticated) {
+      this.apiService.getUsuarioActual().subscribe({
+        next: (user) => this.usuario = user,
+        error: (err) => console.error('Error al cargar usuario:', err)
+      });
+    }
   }
 }

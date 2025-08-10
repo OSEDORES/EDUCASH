@@ -15,22 +15,52 @@
     <ion-card class="form-card">
       <ion-card-header>
         <ion-card-title>Iniciar Sesión</ion-card-title>
+        <ion-card-subtitle>Bienvenido de vuelta</ion-card-subtitle>
       </ion-card-header>
 
       <ion-card-content>
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           <!-- Input de email con icono -->
-          <ion-item lines="full" class="form-input">
+          <ion-item lines="full" class="form-input" [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
             <ion-icon slot="start" name="mail-outline"></ion-icon>
             <ion-label position="floating">Correo electrónico</ion-label>
-            <ion-input formControlName="email" type="email" required></ion-input>
+            <ion-input 
+              formControlName="email" 
+              type="email" 
+              required
+              placeholder="ejemplo@correo.com">
+            </ion-input>
+            <ion-note slot="error" *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched">
+              El correo es requerido
+            </ion-note>
+            <ion-note slot="error" *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched">
+              Ingrese un correo válido
+            </ion-note>
           </ion-item>
 
           <!-- Input de contraseña con icono -->
-          <ion-item lines="full" class="form-input">
+          <ion-item lines="full" class="form-input" [class.invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
             <ion-label position="floating">Contraseña</ion-label>
-            <ion-input formControlName="password" type="password" required></ion-input>
+            <ion-input 
+              formControlName="password" 
+              [type]="showPassword ? 'text' : 'password'" 
+              required
+              placeholder="Ingrese su contraseña">
+            </ion-input>
+            <ion-button 
+              fill="clear" 
+              slot="end" 
+              (click)="togglePasswordVisibility()"
+              class="password-toggle">
+              <ion-icon [name]="showPassword ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+            </ion-button>
+            <ion-note slot="error" *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">
+              La contraseña es requerida
+            </ion-note>
+            <ion-note slot="error" *ngIf="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched">
+              Mínimo 6 caracteres
+            </ion-note>
           </ion-item>
 
           <!-- Botón con gradiente -->
@@ -44,12 +74,40 @@
             <span *ngIf="!loading">Ingresar</span>
           </ion-button>
         </form>
+
+        <!-- Link de olvidé mi contraseña -->
+          <div class="forgot-password">
+            <ion-button 
+              fill="clear" 
+              [routerLink]="['/recuperar-usuarios']" 
+              class="forgot-btn">
+              ¿Olvidaste tu contraseña?
+            </ion-button>
+          </div>
+
+        <!-- Separador visual -->
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-text">¿No tienes cuenta?</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Botón de registro -->
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          shape="round"
+          [routerLink]="['/registro-usuarios']" 
+          class="register-btn">
+          Crear cuenta nueva
+        </ion-button>
       </ion-card-content>
     </ion-card>
 
-    <!-- Footer minimalista -->
+    <!-- Footer mejorado -->
     <div class="auth-footer">
       <p>© 2025 EDUCA$H v1.0</p>
+      <p class="version-info">Versión 1.0.0</p>
     </div>
   </div>
 </ion-content>

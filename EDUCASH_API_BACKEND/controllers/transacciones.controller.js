@@ -129,3 +129,31 @@ export const deleteGasto = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Obtener detalle de ingreso
+export const getIngresoDetalle = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('IdIngreso', id)
+      .execute('GET_IngresoDetalle');
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Obtener detalle de gasto
+export const getGastoDetalle = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('IdGasto', id)
+      .execute('GET_GastoDetalle');
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

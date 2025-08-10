@@ -1,9 +1,10 @@
 {
   "name": "educash_api_backend",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon index.js",
     "start": "node server.js"
   },
   "keywords": [],

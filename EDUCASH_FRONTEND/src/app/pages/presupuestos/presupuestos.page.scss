@@ -1,4 +1,42 @@
-/* presupuestos.page.scss - Versión mejorada */
+.presupuesto-card {
+  margin: 10px;
+}
+
+.presupuesto-info {
+  margin-bottom: 15px;
+}
+
+.monto-info h3 {
+  margin: 0;
+  color: var(--ion-color-primary);
+}
+
+.objetivo {
+  color: var(--ion-color-medium);
+  font-style: italic;
+}
+
+.progreso-container {
+  margin: 10px 0;
+}
+
+.progreso-texto {
+  display: block;
+  text-align: right;
+  margin-top: 5px;
+}
+
+.fechas-info {
+  color: var(--ion-color-medium);
+}
+
+.acciones {
+  margin-top: 10px;
+}
+
+.excedido {
+  border-left: 4px solid var(--ion-color-danger);
+}
 
 /* Estilo para la toolbar */
 ion-toolbar {
@@ -151,4 +189,6 @@ ion-list {
     font-size: 1rem;
     margin: 0;
   }
+
+  
 }

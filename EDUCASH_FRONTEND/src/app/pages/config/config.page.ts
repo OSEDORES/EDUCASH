@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { MenuController, AlertController } from '@ionic/angular';
+import { ApiService } from 'src/app/services/api.service';
 
 @Component({
   selector: 'app-config',
@@ -8,9 +10,13 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ConfigPage implements OnInit {
 
-  constructor() { }
+
+  constructor(
+    private apiService: ApiService,
+    private menu: MenuController,
+    private alertCtrl: AlertController
+  ) {}
 
   ngOnInit() {
   }
-
 }

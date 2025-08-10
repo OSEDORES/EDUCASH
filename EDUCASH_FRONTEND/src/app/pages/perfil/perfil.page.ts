@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { AlertController, NavController, LoadingController } from '@ionic/angular';
+import { ApiService } from '../../services/api.service';
+import { Storage } from '@ionic/storage-angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-perfil',
@@ -18,29 +20,24 @@ export class PerfilPage implements OnInit {
   };
   editMode = false;
   isLoading = true;
+  userId: number | null = null;
 
   constructor(
-    private http: HttpClient,
+    private apiService: ApiService,
     private alertCtrl: AlertController,
     private navCtrl: NavController,
-    private loadingCtrl: LoadingController
+    private loadingCtrl: LoadingController,
+    private storage: Storage,
+    private router: Router
   ) {}
 
   async ngOnInit() {
+    await this.initStorage();
     await this.cargarDatos();
   }
 
-  
-
-  cargarDatosUsuario() {
-    this.http.get('http://localhost:3000/Usuarios/1').subscribe({
-      next: (data: any) => {
-        this.usuario = data;
-      },
-      error: (err) => {
-        console.error('Error cargando usuario:', err);
-      }
-    });
+  async initStorage() {
+    await this.storage.create();
   }
 
   async cargarDatos() {
@@ -50,36 +47,82 @@ export class PerfilPage implements OnInit {
     await loading.present();
 
     try {
-      // Cargar usuario
-      const usuarios: any = await this.http.get('http://localhost:3000/Usuarios').toPromise();
-      this.usuario = usuarios.find((u: any) => u.id === 1) || usuarios[0];
+      // Obtener userId del storage
+      this.userId = await this.storage.get('userId');
       
-      // Cargar estadísticas
-      await this.calcularEstadisticas();
+      if (!this.userId) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      // Cargar datos del usuario actual
+      await this.cargarUsuarioActual();
+      
+      // Cargar estadísticas del usuario
+      await this.cargarEstadisticasUsuario();
+      
     } catch (error) {
       console.error('Error cargando datos:', error);
-      this.mostrarAlerta('Error al cargar datos del perfil');
+      this.mostrarAlerta('Error al cargar datos del perfil. Por favor, inicia sesión nuevamente.');
+      
+      // Redirigir al login si no está autenticado
+      if (error instanceof Error && error.message === 'Usuario no autenticado') {
+        this.router.navigate(['/login'], { replaceUrl: true });
+      }
     } finally {
       this.isLoading = false;
       await loading.dismiss();
     }
   }
 
-  calcularEstadisticas() {
-    this.http.get('http://localhost:3000/ingresos').subscribe((ingresos: any) => {
-      const totalIngresos = ingresos.reduce((sum: number, item: any) => sum + item.monto, 0);
-      
-      this.http.get('http://localhost:3000/gastos').subscribe((gastos: any) => {
-        const totalGastos = gastos.reduce((sum: number, item: any) => sum + item.monto, 0);
-        
-        this.estadisticas = {
-          totalIngresos,
-          totalGastos,
-          balance: totalIngresos - totalGastos,
-          presupuestosActivos: 1 // Asumiendo que siempre hay 1 presupuesto activo
-        };
-      });
-    });
+  async cargarUsuarioActual() {
+    if (!this.userId) return;
+
+    try {
+      const usuario = await this.apiService.getUsuarioActual().toPromise();
+      this.usuario = usuario;
+    } catch (error) {
+      console.error('Error cargando usuario:', error);
+      throw error;
+    }
+  }
+
+  async cargarEstadisticasUsuario() {
+    if (!this.userId) return;
+
+    try {
+      const ingresosRaw = await this.apiService.getIngresosUsuario(this.userId).toPromise();
+      const gastosRaw = await this.apiService.getGastosUsuario(this.userId).toPromise();
+
+      const ingresos = (ingresosRaw || []).map(i => ({
+        monto: i.Monto,
+        descripcion: i.Descripcion,
+        fecha: i.Fecha,
+        ...i
+      }));
+
+      const gastos = (gastosRaw || []).map(g => ({
+        monto: g.Monto,
+        descripcion: g.Descripcion,
+        fecha: g.Fecha,
+        ...g
+      }));
+
+      this.estadisticas.totalIngresos = ingresos.reduce((sum, item) => sum + (item.monto || 0), 0);
+      this.estadisticas.totalGastos = gastos.reduce((sum, item) => sum + (item.monto || 0), 0);
+      this.estadisticas.balance = this.estadisticas.totalIngresos - this.estadisticas.totalGastos;
+
+      const presupuestos = await this.apiService.getPresupuestosUsuario(this.userId).toPromise();
+      this.estadisticas.presupuestosActivos = presupuestos?.length || 0;
+
+    } catch (error) {
+      console.error('Error cargando estadísticas:', error);
+      this.estadisticas = {
+        totalIngresos: 0,
+        totalGastos: 0,
+        balance: 0,
+        presupuestosActivos: 0
+      };
+    }
   }
 
   async cambiarPassword() {
@@ -95,6 +138,11 @@ export class PerfilPage implements OnInit {
           name: 'nueva',
           type: 'password',
           placeholder: 'Nueva contraseña'
+        },
+        {
+          name: 'confirmar',
+          type: 'password',
+          placeholder: 'Confirmar nueva contraseña'
         }
       ],
       buttons: [
@@ -104,14 +152,30 @@ export class PerfilPage implements OnInit {
         },
         {
           text: 'Guardar',
-          handler: (data) => {
-            if (data.actual && data.nueva) {
-              // Lógica para actualizar contraseña
-              this.http.patch(`http://localhost:3000/Usuarios/${this.usuario.id}`, {
-                password: data.nueva
-              }).subscribe(() => {
-                this.mostrarAlerta('Contraseña actualizada');
-              });
+          handler: async (data) => {
+            if (!data.actual || !data.nueva || !data.confirmar) {
+              this.mostrarAlerta('Todos los campos son requeridos');
+              return false;
+            }
+
+            if (data.nueva !== data.confirmar) {
+              this.mostrarAlerta('Las contraseñas no coinciden');
+              return false;
+            }
+
+            try {
+              const updateData = {
+                NombreUsuario: this.usuario.NombreUsuario,
+                ClaveActual: data.actual,
+                NuevaClave: data.nueva
+              };
+
+              await this.apiService.actualizarPerfil(this.usuario.id, updateData).toPromise();
+              this.mostrarAlerta('Contraseña actualizada correctamente');
+              return true;
+            } catch (error) {
+              this.mostrarAlerta('Error al actualizar contraseña. Verifique su contraseña actual.');
+              return false;
             }
           }
         }
@@ -122,7 +186,8 @@ export class PerfilPage implements OnInit {
 
   async mostrarAlerta(mensaje: string) {
     const alert = await this.alertCtrl.create({
-      header: mensaje,
+      header: 'Información',
+      message: mensaje,
       buttons: ['OK']
     });
     await alert.present();
@@ -132,11 +197,34 @@ export class PerfilPage implements OnInit {
     this.editMode = !this.editMode;
   }
 
-  guardarCambios() {
-    this.http.put(`http://localhost:3000/Usuarios/${this.usuario.id}`, this.usuario)
-      .subscribe(() => {
-        this.toggleEditMode();
-        this.mostrarAlerta('Perfil actualizado');
-      });
+  async guardarCambios() {
+    if (!this.userId) return;
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Guardando cambios...'
+    });
+    await loading.present();
+
+    try {
+      const updateData = {
+        NombreUsuario: this.usuario.NombreUsuario,
+        FotoPerfil: this.usuario.FotoPerfil
+      };
+
+      await this.apiService.actualizarPerfil(this.usuario.id, updateData).toPromise();
+      
+      this.toggleEditMode();
+      this.mostrarAlerta('Perfil actualizado correctamente');
+      
+    } catch (error) {
+      console.error('Error guardando cambios:', error);
+      this.mostrarAlerta('Error al guardar los cambios');
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  async refreshData() {
+    await this.cargarDatos();
   }
 }

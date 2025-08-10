@@ -1,28 +1,32 @@
 <ion-app>
-  <ion-menu side="start" menuId="main" contentId="main-content" type="overlay">
+  <ion-menu side="start" menuId="main" contentId="main-content" type="overlay" [disabled]="!isAuthenticated">
     <ion-header>
-      <ion-toolbar color="primary">
-        <div class="logo-container ion-text-center ion-padding">
-          <img src="assets/img/EDUCASH_LOGO.png" alt="EDUCA$H Logo" class="menu-logo">
-          <div class="quick-summary" *ngIf="isAuthenticated">
+      <ion-toolbar>
+        <div class="logo-container">
+          <img src="assets/img/EDUCASH_LOGO.png" alt="EDUCA$H Logo">
+          <div class="quick-summary" *ngIf="isAuthenticated && usuario">
+            <ion-text color="light">
+              <small>Bienvenido/a</small>
+              <h4>{{ usuario.nombre || 'Usuario' }}</h4>
+            </ion-text>
           </div>
         </div>
       </ion-toolbar>
     </ion-header>
     
     <ion-content>
-      <ion-list lines="none">
+      <ion-list>
         <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
           <ion-item [routerLink]="p.url" routerDirection="root" detail="false" class="menu-item">
-            <ion-icon slot="start" [name]="p.icon" color="medium"></ion-icon>
+            <ion-icon slot="start" [name]="p.icon"></ion-icon>
             <ion-label>{{ p.title }}</ion-label>
           </ion-item>
         </ion-menu-toggle>
 
         <div class="menu-divider"></div>
 
-        <ion-item button (click)="logout()" class="logout-item">
-          <ion-icon slot="start" name="log-out" color="danger"></ion-icon>
+        <ion-item button (click)="logout()" class="logout-item" *ngIf="isAuthenticated">
+          <ion-icon slot="start" name="log-out"></ion-icon>
           <ion-label>Cerrar sesión</ion-label>
         </ion-item>
       </ion-list>

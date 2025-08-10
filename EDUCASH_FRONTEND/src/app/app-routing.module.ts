@@ -58,15 +58,20 @@ const routes: Routes = [
   },
   // Ruta de fallback
   {
-    path: '**',
-    redirectTo: 'home'
-  },
-  {
     path: 'config',
     loadChildren: () => import('./pages/config/config.module').then( m => m.ConfigPageModule)
-  }
+  },
+  {
+    path: 'recuperar-usuarios',
+    loadChildren: () => import('./pages/recuperar-usuarios/recuperar-usuarios.module').then( m => m.RecuperarUsuariosPageModule)
+  },
+  {
+    path: 'registro-usuarios',
+    loadChildren: () => import('./pages/registro-usuarios/registro-usuarios.module').then(m => m.RegistroUsuariosPageModule)
+}
+   
 ];
-
+  
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })

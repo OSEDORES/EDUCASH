@@ -1,17 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { NavController } from '@ionic/angular';
-import { MenuController } from '@ionic/angular';
+import { NavController, MenuController, LoadingController, ToastController } from '@ionic/angular';
 import { ApiService } from 'src/app/services/api.service';
 
 
-interface Categoria {
+interface Ingreso {
+  id: number;
+  monto: number;
+  fecha: string;
+  descripcion: string;
+  id_categoria: number;
+  es_recurrente: boolean;
+  categoria_nombre?: string;
+  categoria_icono?: string;
+  categoria_color?: string;
+}
+
+interface CategoriaIngreso {
   id: number;
   nom_categoria: string;
   icono: string;
   color: string;
-  es_recurrente?: boolean;
-  es_fijo?: boolean;
 }
 
 @Component({
@@ -21,98 +29,192 @@ interface Categoria {
   standalone: false,
 })
 export class ListadoPage implements OnInit {
-  ingresos: any[] = [];
-  ingresosFiltrados: any[] = [];
+   ingresos: Ingreso[] = [];
+  ingresosFiltrados: Ingreso[] = [];
+  categorias: CategoriaIngreso[] = [];
   filtro: string = 'todos';
-  categorias: any[] = [];
-
+  categoriaFiltro: number | 'todas' = 'todas';
+  cargando: boolean = true;
+  errorCarga: boolean = false;
 
   constructor(
-    private http: HttpClient, 
-    private navCtrl: NavController, 
+    private navCtrl: NavController,
     private menu: MenuController,
-    private apiService: ApiService) {}
+    private apiService: ApiService,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController
+  ) {}
 
-  ngOnInit() {
-    this.cargarDatosIniciales();
+  async ngOnInit() {
+    await this.cargarDatosIniciales();
   }
 
-  cargarDatosIniciales() {
-    this.apiService.getCategoriasIngresos().subscribe({
-      next: (data) => {
-        this.categorias = data;
-        this.cargarIngresos();
-      },
-      error: (err) => {
-        console.error('Error cargando categorías', err);
-        this.categorias = [
-          { id: 1, nom_categoria: 'Salario', icono: 'cash-outline', color: '#4CAF50', es_recurrente: true },
-          { id: 2, nom_categoria: 'Freelance', icono: 'code-working-outline', color: '#2196F3', es_recurrente: false }
-        ];
-        this.cargarIngresos();
+  async cargarDatosIniciales() {
+    this.cargando = true;
+    this.errorCarga = false;
+
+    try {
+      const loading = await this.loadingCtrl.create({
+        message: 'Cargando ingresos...',
+        spinner: 'crescent'
+      });
+      await loading.present();
+
+      const userId = await this.obtenerUserId();
+      if (!userId) {
+        await loading.dismiss();
+        return;
       }
+
+      // Cargar categorías primero para asegurar que estén disponibles antes de mapear ingresos
+      const categoriasData = await this.apiService.getCategoriasIngresos().toPromise();
+      this.categorias = (categoriasData || []).map(cat => ({
+        id: cat.Id_Categoria_Ingreso,
+        nom_categoria: cat.Nombre_Categoria_Ingreso,
+        icono: cat.Icono,
+        color: cat.Color
+      }));
+
+      const ingresosData = await this.apiService.getIngresosUsuario(userId).toPromise();
+      console.log('Datos de ingresos cargados:', ingresosData);
+      this.ingresos = this.mapearIngresos(ingresosData || []);
+      this.filtrarIngresos();
+
+      await loading.dismiss();
+    } catch (error) {
+      console.error('Error cargando datos:', error);
+      this.errorCarga = true;
+      await this.mostrarError('Error al cargar los ingresos');
+    } finally {
+      this.cargando = false;
+    }
+  }
+
+  private async obtenerUserId(): Promise<number> {
+    try {
+      const userData: any = await this.apiService.getUsuarioActual().toPromise();
+      return userData?.Id_Usuario || 0;
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+      return 0;
+    }
+  }
+
+  private mapearIngresos(data: any[]): Ingreso[] {
+    return data.map(ingreso => {
+      const categoria = this.obtenerCategoria(ingreso.Id_Categoria_Ingreso);
+      
+      return {
+        id: ingreso.Id_Ingreso || 0,
+        monto: parseFloat(ingreso.Monto) || 0,
+        fecha: ingreso.Fecha || new Date().toISOString(),
+        descripcion: ingreso.Descripcion || 'Sin descripción',
+        id_categoria: ingreso.Id_Categoria_Ingreso || 0,
+        es_recurrente: ingreso.Es_Recurrente || false,
+        categoria_nombre: categoria?.nom_categoria,
+        categoria_icono: categoria?.icono,
+        categoria_color: categoria?.color
+      };
     });
   }
 
-  cargarIngresos() {
-    this.apiService.getListaIngresos().subscribe((data: any) => {
-      this.ingresos = data;
-      this.filtrarIngresos();
-    });
+  private obtenerCategoria(id: number): CategoriaIngreso | undefined {
+    return this.categorias.find(c => c.id === id);
   }
 
   filtrarIngresos() {
-    if (this.filtro === 'todos') {
-      this.ingresosFiltrados = [...this.ingresos];
-    } else if (this.filtro === 'mes') {
+    let filtrados = [...this.ingresos];
+
+    if (this.filtro === 'mes') {
       const hoy = new Date();
-      this.ingresosFiltrados = this.ingresos.filter(ingreso => {
+      filtrados = filtrados.filter(ingreso => {
         const fechaIngreso = new Date(ingreso.fecha);
-        return fechaIngreso.getMonth() === hoy.getMonth() && fechaIngreso.getFullYear() === hoy.getFullYear();
+        return fechaIngreso.getMonth() === hoy.getMonth() && 
+               fechaIngreso.getFullYear() === hoy.getFullYear();
       });
+    } else if (this.filtro === 'categoria' && this.categoriaFiltro !== 'todas') {
+      filtrados = filtrados.filter(ingreso => ingreso.id_categoria === this.categoriaFiltro);
     }
-    // Ordenar por fecha (más reciente primero)
-    this.ingresosFiltrados.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+    this.ingresosFiltrados = this.ordenarPorFecha(filtrados);
   }
 
-  eliminarIngreso(id: number) {
-    this.apiService.eliminarIngreso(id).subscribe(() => {
-      this.ingresos = this.ingresos.filter(ingreso => ingreso.id !== id);
-      this.filtrarIngresos();
+  private ordenarPorFecha(ingresos: Ingreso[]): Ingreso[] {
+    return [...ingresos].sort((a, b) => {
+      const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
+      const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
+      return fechaB - fechaA;
     });
   }
 
+  async eliminarIngreso(id: number) {
+    const loading = await this.loadingCtrl.create({
+      message: 'Eliminando ingreso...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    try {
+      await this.apiService.eliminarIngreso(id.toString()).toPromise();
+      this.ingresos = this.ingresos.filter(ingreso => ingreso.id !== id);
+      this.filtrarIngresos();
+      await this.mostrarExito('Ingreso eliminado correctamente');
+    } catch (error) {
+      console.error('Error eliminando ingreso:', error);
+      await this.mostrarError('Error al eliminar el ingreso');
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  // Métodos de navegación
   navigateToRegistro() {
     this.navCtrl.navigateForward('/ingresos/registro');
   }
 
-  ionViewWillEnter() {
-    this.menu.enable(true); // Habilita el menú al entrar
-  }
-
-  ionViewWillLeave() {
-    this.menu.enable(false); // Opcional: deshabilita al salir
-  }
-
-  editarIngreso(ingreso: any) {
-    // Navega a la página de registro con el ID como parámetro
+  editarIngreso(ingreso: Ingreso) {
     this.navCtrl.navigateForward(['/ingresos/registro', ingreso.id]);
   }
 
-  // En listado.page.ts y registro.page.ts
-  getColorCategoria(nombreCategoria: string): string {
-    const categoria = this.categorias.find(c => c.nom_categoria === nombreCategoria);
-    return categoria?.color || '#4CAF50'; // Verde por defecto
+  // Métodos de UI
+  getColorCategoria(idCategoria: number): string {
+    const categoria = this.categorias.find(c => c.id === idCategoria);
+    return categoria?.color || '#4CAF50';
   }
 
-  getIconoCategoria(nombreCategoria: string): string {
-    const categoria = this.categorias.find(c => c.nom_categoria === nombreCategoria);
+  getIconoCategoria(idCategoria: number): string {
+    const categoria = this.categorias.find(c => c.id === idCategoria);
     return categoria?.icono || 'wallet-outline';
   }
 
-  esRecurrente(nombreCategoria: string): boolean {
-    const categoria = this.categorias.find(c => c.nom_categoria === nombreCategoria);
-    return categoria?.es_recurrente || false;
+  getNombreCategoria(idCategoria: number): string {
+    const categoria = this.categorias.find(c => c.id === idCategoria);
+    return categoria?.nom_categoria || 'General';
   }
 
+  // Control del menú
+  ionViewWillEnter() {
+    this.menu.enable(true);
+  }
+
+  // Métodos de feedback
+  private async mostrarError(mensaje: string) {
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 3000,
+      color: 'danger',
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
+  private async mostrarExito(mensaje: string) {
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 2000,
+      color: 'success',
+      position: 'bottom'
+    });
+    await toast.present();
+  }
 }

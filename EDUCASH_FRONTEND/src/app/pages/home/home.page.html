@@ -3,82 +3,57 @@
     <ion-buttons slot="start">
       <ion-menu-button color="light"></ion-menu-button>
     </ion-buttons>
-    <ion-title class="header-title">EDUCA$H</ion-title>
+    <ion-title>EDUCA$H</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshData()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="home-content">
-  <!-- Tarjeta de resumen principal -->
-  <ion-card class="summary-card">
+<ion-content class="ion-padding">
+  <!-- Resumen financiero -->
+  <ion-card>
     <ion-card-header>
-      <ion-card-subtitle>Balance Actual</ion-card-subtitle>
-      <ion-card-title class="balance-amount">{{ saldoTotal | currency:'HNL':'L ' }}</ion-card-title>
+      <ion-card-title class="ion-text-center">
+        {{ saldoTotal | currency:'HNL':'L ' }}
+      </ion-card-title>
+      <ion-card-subtitle class="ion-text-center">Balance Total</ion-card-subtitle>
     </ion-card-header>
-    
+
     <ion-card-content>
-      <div class="summary-grid">
-        <div class="summary-item income">
-          <ion-icon name="trending-up-outline"></ion-icon>
-          <div>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" class="ion-text-center">
+            <h3 style="color: var(--ion-color-success)">
+              {{ totalIngresos | currency:'HNL':'L ' }}
+            </h3>
             <p>Ingresos</p>
-            <h3>{{ totalIngresos | currency:'HNL':'L ' }}</h3>
-          </div>
-        </div>
-        
-        <div class="summary-item expense">
-          <ion-icon name="trending-down-outline"></ion-icon>
-          <div>
+          </ion-col>
+          <ion-col size="6" class="ion-text-center">
+            <h3 style="color: var(--ion-color-danger)">
+              {{ totalGastos | currency:'HNL':'L ' }}
+            </h3>
             <p>Gastos</p>
-            <h3>{{ totalGastos | currency:'HNL':'L ' }}</h3>
-          </div>
-        </div>
-      </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </ion-card-content>
   </ion-card>
 
-  <!-- Gráfico circular -->
-  <ion-card class="chart-card">
+  <!-- Gráfico -->
+  <ion-card>
     <ion-card-header>
       <ion-card-title>Distribución</ion-card-title>
-      <ion-segment [(ngModel)]="chartPeriod" (ionChange)="updateChart()">
-        <ion-segment-button value="month">
-          <ion-label>Mes</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="year">
-          <ion-label>Año</ion-label>
-        </ion-segment-button>
-      </ion-segment>
     </ion-card-header>
-    
     <ion-card-content>
-      <div class="chart-comparison">
-        <!-- Gráfico de proporción gastos/ingresos -->
-        <div class="chart-wrapper">
-          <canvas #chartContainer class="chart-container"></canvas>
+      <div class="chart-wrapper">
+        <div class="chart-container">
+          <canvas #chartContainer></canvas>
           <div class="chart-center-text">
-            <span *ngIf="chartPeriod === 'month'">Mes</span>
-            <span *ngIf="chartPeriod === 'year'">Año</span>
             <h3>{{ getPorcentajeGastos() }}%</h3>
-            <small>de tus ingresos</small>
-          </div>
-        </div>
-        
-        <!-- Mini tabla comparativa -->
-        <div class="comparison-table">
-          <div class="table-row header">
-            <div></div>
-            <div>Mes</div>
-            <div>Año</div>
-          </div>
-          <div class="table-row">
-            <div>Ingresos</div>
-            <div>{{ totalIngresos | currency:'HNL':'L ' }}</div>
-            <div>{{ anualIngresos | currency:'HNL':'L ' }}</div>
-          </div>
-          <div class="table-row">
-            <div>Gastos</div>
-            <div>{{ totalGastos | currency:'HNL':'L ' }}</div>
-            <div>{{ anualGastos | currency:'HNL':'L ' }}</div>
+            <span>de gastos</span>
           </div>
         </div>
       </div>
@@ -86,26 +61,25 @@
   </ion-card>
 
   <!-- Últimas transacciones -->
-  <ion-card class="transactions-card">
+  <ion-card>
     <ion-card-header>
       <ion-card-title>Últimos Movimientos</ion-card-title>
     </ion-card-header>
-    
     <ion-card-content>
       <ion-list lines="none">
-        <ion-item *ngFor="let trans of ultimasTransacciones" class="transaction-item">
+        <ion-item *ngFor="let trans of ultimasTransacciones">
           <ion-icon 
             slot="start" 
-            [name]="trans.tipo === 'ingreso' ? 'add-circle-outline' : 'remove-circle-outline'" 
+            [name]="trans.tipo === 'ingreso' ? 'arrow-up-circle' : 'arrow-down-circle'" 
             [color]="trans.tipo === 'ingreso' ? 'success' : 'danger'">
           </ion-icon>
           
           <ion-label>
-            <h3>{{ trans.categoria }}</h3>
-            <p>{{ trans.fecha | date:'mediumDate' }}</p>
+            <h3>{{ trans.descripcion || 'Transacción' }}</h3>
+            <p>{{ trans.fecha | date:'shortDate' }}</p>
           </ion-label>
           
-          <ion-note slot="end" [color]="trans.tipo === 'ingreso' ? 'success' : 'danger'">
+          <ion-note [color]="trans.tipo === 'ingreso' ? 'success' : 'danger'">
             {{ trans.monto | currency:'HNL':'L ' }}
           </ion-note>
         </ion-item>

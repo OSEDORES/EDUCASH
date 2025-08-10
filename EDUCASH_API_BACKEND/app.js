@@ -1,9 +1,10 @@
 import express from 'express'
-/*import authRoutes from './routes/auth.routes.js'*/
-/*import presupuestosRoutes from './routes/presupuestos.routes.js'*/
-/*import tipsRoutes from './routes/tips.routes.js'*/
+import presupuestosRoutes from './routes/presupuestos.routes.js'
+import tipsRoutes from './routes/tips.routes.js'
 import transaccionesRoutes from './routes/transacciones.routes.js';
-/*import usuariosRoutes from './routes/usuarios.routes.js'*/
+import usuariosRoutes from './routes/usuarios.routes.js'
+import categoriasRoutes from './routes/categorias.routes.js'
+import recordatoriosRoutes from './routes/recordatorios.routes.js'
 
 const app = express()
 
@@ -24,11 +25,12 @@ app.use(express.json());
         next();
     });
 
-    /*app.use('/api/auth', authRoutes);*/
-    /*app.use('/api/presupuestos', presupuestosRoutes);*/
-    /*app.use('/api/tips', tipsRoutes);*/
-    app.use('/api', transaccionesRoutes);
-    /*app.use('/api/usuarios', usuariosRoutes);*/
+    app.use('/api/presupuestos', presupuestosRoutes);
+    app.use('/api/tips', tipsRoutes);
+    app.use('/api/transacciones', transaccionesRoutes);
+    app.use('/api/usuarios', usuariosRoutes);
+    app.use('/api', categoriasRoutes);
+    app.use('/api', recordatoriosRoutes);
 
 
 export default app;

@@ -23,13 +23,13 @@ ion-item {
   --highlight-color-focused: var(--ion-color-danger);
   
   ion-label[position="floating"] {
-    color: var(--ion-color-medium);
-    font-weight: 500;
+    color: black;
+    font-weight: 600;
     transform-origin: left center;
   }
   
   ion-input, ion-select, ion-datetime, ion-textarea {
-    --color: var(--ion-color-dark);
+    --color: black;
     --placeholder-color: var(--ion-color-medium);
     --placeholder-opacity: 0.8;
     font-size: 1rem;
@@ -50,6 +50,7 @@ ion-select {
   &::part(text) {
     display: flex;
     align-items: center;
+    color: black;
   }
 }
 
@@ -57,6 +58,7 @@ ion-select-option {
   display: flex;
   align-items: center;
   gap: 8px;
+  color: black;
   
   ion-icon {
     margin-right: 8px;
@@ -109,6 +111,6 @@ ion-select {
 /* Estilo para el datetime */
 ion-datetime {
   &::part(text) {
-    color: var(--ion-color-dark);
+    color: black;
   }
 }

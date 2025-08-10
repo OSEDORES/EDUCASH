@@ -62,11 +62,11 @@
   margin: 16px;
   border-radius: 12px;
   
-  .chart-container {
-    display: block;
-    width: 100%;
-    height: 250px;
-  }
+.chart-container {
+  display: block;
+  width: 100%;
+  height: 80px;
+}
 }
 
 .transactions-card {
@@ -143,42 +143,48 @@ ion-card {
     }
   }
   
-  .chart-wrapper {
-    position: relative;
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 180px;
+  margin: 0 auto;
+  
+  .chart-container {
+    display: block;
     width: 100%;
-    max-width: 250px;
-    margin: 0 auto;
+    height: 180px;
+  }
+  
+  .chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 50%;
     
-    .chart-container {
-      display: block;
-      width: 100%;
-      height: 250px;
+    span {
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
     }
     
-    .chart-center-text {
-      position: absolute;
-      top: 41%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      
-      span {
-        font-size: 0.8rem;
-        color: var(--ion-color-medium);
-      }
-      
-      h3 {
-        font-size: 1.8rem;
-        margin: 4px 0;
-        color: var(--ion-color-primary);
-      }
-      
-      small {
-        font-size: 0.7rem;
-        color: var(--ion-color-medium);
-      }
+    h3 {
+      font-size: 18cm;
+      margin: 0;
+      color: var(--ion-color-primary);
+    }
+    
+    span {
+      font-size: 1rem;
+      color: var(--ion-color-medium);
+    }
+    
+    small {
+      font-size: 0.7rem;
+      color: var(--ion-color-medium);
     }
   }
+}
   
   .comparison-table {
     flex-grow: 1;

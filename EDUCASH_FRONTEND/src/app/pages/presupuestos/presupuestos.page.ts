@@ -1,19 +1,54 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http'; 
 import { AlertController, ModalController } from '@ionic/angular';
-import { CrearPresupuestoModalComponent } from './crear-presupuesto-modal/crear-presupuesto-modal.component'; // Asumo que crearás este modal
-import { NavController } from '@ionic/angular';
+import { CrearPresupuestoModalComponent } from './crear-presupuesto-modal/crear-presupuesto-modal.component';
+import { ApiService } from '../../services/api.service';
 import { MenuController } from '@ionic/angular';
+import { Storage } from '@ionic/storage-angular';
+
+// Interfaces basadas en los procedimientos almacenados de tu backend
+interface ApiPresupuesto {
+  Id_Presupuesto: number;
+  Nombre_Presupuesto: string;
+  Tipo_Presupuesto: string;
+  Periodo: string;
+  Monto_Total: number;
+  Monto_Usado: number;
+  Objetivo?: string;
+  Fecha_Creacion: string;
+  Estado: string;
+}
+
+interface ApiDetallePresupuesto {
+  Id_Detalle_Presupuesto: number;
+  Id_Categoria_Ingreso: number | null;
+  Id_Categoria_Gasto: number | null;
+  Categoria: string;
+  Icono: string;
+  Color: string;
+  Monto_Asignado: number;
+  Monto_Usado: number;
+}
 
 interface Presupuesto {
   id: number;
   nombre: string;
-  categoria: string;
-  tipo: 'Gasto' | 'Ingreso' | 'Ahorro'; // Más flexible
+  tipo: string;
+  periodo: string;
   montoTotal: number;
   montoUsado: number;
-  periodo: 'Diario' | 'Semanal' | 'Mensual' | 'Anual';
-  objetivo?: string; // Opcional
+  porcentajeUsado: number;
+  objetivo?: string;
+  estado: string;
+  detalles: DetallePresupuesto[];
+}
+
+interface DetallePresupuesto {
+  id: number;
+  categoria: string;
+  icono: string;
+  color: string;
+  montoAsignado: number;
+  montoUsado: number;
 }
 
 @Component({
@@ -24,92 +59,138 @@ interface Presupuesto {
 })
 export class PresupuestosPage implements OnInit {
   presupuestos: Presupuesto[] = [];
+  loading: boolean = false;
+  userId: number = 0;
+  categoriasIngresos: any[] = [];
+  categoriasGastos: any[] = [];
 
   constructor(
     private modalCtrl: ModalController,
     private alertController: AlertController,
-    private http: HttpClient,
-    private navCtrl: NavController,
-    private menu: MenuController) {}
+    private apiService: ApiService,
+    private menu: MenuController,
+    private storage: Storage
+  ) {}
 
-  ngOnInit() {
-    this.cargarPresupuestos();
+  async ngOnInit() {
+    this.userId = await this.storage.get('userId') || 0;
+    if (this.userId > 0) {
+      await this.cargarCategorias();
+      await this.cargarPresupuestos();
+    } else {
+      console.error('No se encontró userId en el almacenamiento');
+    }
+  }
+
+  ionViewWillEnter() {
+    this.menu.enable(true);
+    if (this.userId > 0) {
+      this.cargarPresupuestos();
+    }
+  }
+
+  async cargarCategorias() {
+    try {
+      console.log(' Cargando categorías...');
+      this.categoriasIngresos = await this.apiService.getCategoriasIngresos().toPromise() || [];
+      this.categoriasGastos = await this.apiService.getCategoriasGastos().toPromise() || [];
+      console.log(' Categorías cargadas:', { 
+        categoriasIngresos: this.categoriasIngresos.length, 
+        categoriasGastos: this.categoriasGastos.length 
+      });
+    } catch (error) {
+      console.error('Error al cargar categorías:', error);
+    }
   }
 
   async cargarPresupuestos() {
+    this.loading = true;
+    console.log(' Iniciando carga de presupuestos para usuario:', this.userId);
     try {
-      // 1. Intenta cargar de localStorage
-      const datosLocales = localStorage.getItem('presupuestos');
+      const presupuestos = await this.apiService.getPresupuestosUsuario(this.userId).toPromise();
       
-      if (datosLocales) {
-        this.presupuestos = JSON.parse(datosLocales);
-        console.log('Datos cargados de localStorage:', this.presupuestos);
-      } else {
-        // 2. Si no hay en localStorage, carga del JSON
-        const data: any = await this.http.get('assets/data/DataEDUCASH.json').toPromise();
-        
-        if (data?.presupuestos) {
-          this.presupuestos = data.presupuestos;
-          localStorage.setItem('presupuestos', JSON.stringify(data.presupuestos));
-          console.log('Datos cargados de JSON:', this.presupuestos);
-        } else {
-          console.warn('El JSON no tiene propiedad "presupuestos"');
-        }
+      console.log(' Datos de presupuestos recibidos:', presupuestos);
+
+      if (!presupuestos || !Array.isArray(presupuestos)) {
+        throw new Error('No se recibieron datos válidos');
       }
+
+      console.log(' Total de presupuestos encontrados:', presupuestos.length);
+
+      // Procesar cada presupuesto
+      this.presupuestos = presupuestos.map((p: any) => ({
+        id: p.Id_Presupuesto,
+        nombre: p.Nombre_Presupuesto,
+        tipo: p.Tipo_Presupuesto,
+        periodo: p.Periodo,
+        montoTotal: p.Monto_Total,
+        montoUsado: p.Monto_Usado,
+        porcentajeUsado: (p.Monto_Usado / p.Monto_Total) * 100,
+        objetivo: p.Objetivo,
+        estado: p.Estado,
+        detalles: p.detalles || []
+      }));
+
+      console.log(' Todos los presupuestos procesados:', this.presupuestos.length, 'presupuestos');
+
     } catch (error) {
       console.error('Error al cargar presupuestos:', error);
+      this.mostrarAlerta('Error', 'No se pudieron cargar los presupuestos');
       this.presupuestos = [];
+    } finally {
+      this.loading = false;
     }
   }
 
   async abrirModalCrearPresupuesto() {
     const modal = await this.modalCtrl.create({
-      component: CrearPresupuestoModalComponent
+      component: CrearPresupuestoModalComponent,
+      componentProps: { 
+        userId: this.userId,
+        categoriasIngresos: this.categoriasIngresos,
+        categoriasGastos: this.categoriasGastos
+      }
     });
-    await modal.present();  
+    
+    await modal.present();
+    
     const { data } = await modal.onWillDismiss();
-    if (data) {
+    if (data?.actualizar) {
       this.cargarPresupuestos();
     }
   }
 
   calcularProgreso(montoUsado: number, montoTotal: number): number {
-    return (montoUsado / montoTotal) * 100;
+    if (montoTotal === 0) return 0;
+    return Math.min((montoUsado / montoTotal) * 100, 100);
   }
 
-  async abrirModalEditarPresupuesto(presupuesto: any) {
+  getColorProgreso(porcentaje: number): string {
+    if (porcentaje > 90) return 'danger';
+    if (porcentaje > 75) return 'warning';
+    return 'success';
+  }
+
+  async abrirModalEditarPresupuesto(presupuesto: Presupuesto) {
     const modal = await this.modalCtrl.create({
       component: CrearPresupuestoModalComponent,
       componentProps: {
-        presupuesto: presupuesto // Pasamos el presupuesto a editar
+        presupuesto: presupuesto,
+        userId: this.userId,
+        categoriasIngresos: this.categoriasIngresos,
+        categoriasGastos: this.categoriasGastos
       }
     });
-  
+
     await modal.present();
-  
+
     const { data } = await modal.onWillDismiss();
-    if (data) {
-      this.actualizarPresupuesto(data); // Actualiza en localStorage
-    }
-  }
-  
-  actualizarPresupuesto(presupuestoActualizado: any) {
-    const presupuestos = JSON.parse(localStorage.getItem('presupuestos') || '[]');
-    const index = presupuestos.findIndex((p: any) => p.id === presupuestoActualizado.id);
-    
-    if (index !== -1) {
-      presupuestos[index] = presupuestoActualizado;
-      localStorage.setItem('presupuestos', JSON.stringify(presupuestos));
-      this.cargarPresupuestos(); // Recarga la lista
+    if (data?.actualizar) {
+      this.cargarPresupuestos();
     }
   }
 
-  eliminarPresupuesto(id: number) {
-    // Confirmación antes de eliminar
-    this.mostrarAlertaConfirmacion(id);
-  }
-
-  async mostrarAlertaConfirmacion(id: number) {
+  async eliminarPresupuesto(id: number) {
     const alert = await this.alertController.create({
       header: 'Confirmar',
       message: '¿Estás seguro de eliminar este presupuesto?',
@@ -117,11 +198,16 @@ export class PresupuestosPage implements OnInit {
         { text: 'Cancelar', role: 'cancel' },
         { 
           text: 'Eliminar', 
-          handler: () => {
-            const presupuestos = JSON.parse(localStorage.getItem('presupuestos') || '[]');
-            const nuevosPresupuestos = presupuestos.filter((p: any) => p.id !== id);
-            localStorage.setItem('presupuestos', JSON.stringify(nuevosPresupuestos));
-            this.cargarPresupuestos(); // Recarga la lista
+          handler: async () => {
+            try {
+              // Usando procedimiento existente (asumiendo que existe DELETE_Presupuesto)
+              await this.apiService.eliminarPresupuesto(id).toPromise();
+              this.mostrarAlerta('Éxito', 'Presupuesto eliminado correctamente');
+              this.cargarPresupuestos();
+            } catch (error) {
+              console.error('Error al eliminar presupuesto:', error);
+              this.mostrarAlerta('Error', 'No se pudo eliminar el presupuesto');
+            }
           }
         }
       ]
@@ -129,11 +215,12 @@ export class PresupuestosPage implements OnInit {
     await alert.present();
   }
 
-  ionViewWillEnter() {
-    this.menu.enable(true); // Habilita el menú al entrar
-  }
-
-  ionViewWillLeave() {
-    this.menu.enable(false); // Opcional: deshabilita al salir
+  async mostrarAlerta(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 }
